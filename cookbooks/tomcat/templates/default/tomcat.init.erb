@@ -1,0 +1,46 @@
+#!/bin/bash
+# description: Tomcat Start Stop Restart
+# processname: <% @app_name %>
+# chkconfig: 234 90 10
+
+# Get instance specific config file
+if [ -r "/opt/apps/<%= @app_name %>/conf/default_<%= @app_name %>.conf" ]; then
+    . /opt/apps/<%= @app_name %>/conf/default_<%= @app_name %>.conf
+fi
+
+tomcat_running=0
+
+is_running ()
+{
+  [ -f  $CATALINA_PID ] && kill -0 `cat $CATALINA_PID` > /dev/null 2>&1
+  if [ $? -gt  0 ] 
+  then
+    tomcat_running=0
+  else
+    tomcat_running=1
+  fi
+}
+
+rc=1
+
+case $1 in
+  start)
+    su -s /bin/bash <%= node['tomcat']['user'] %> -c "sh $CATALINA_HOME/bin/startup.sh"
+    sleep 2
+    is_running
+    [ $tomcat_running -eq 1 ] && rc=0
+  ;; 
+  stop)   
+    su -s /bin/bash <%= node['tomcat']['user'] %> -c "sh $CATALINA_HOME/bin/shutdown.sh 60 -force"
+    is_running
+    [ $tomcat_running -eq 0 ] && rc=0
+  ;; 
+  restart)
+    su -s /bin/bash <%= node['tomcat']['user'] %> -c "sh $CATALINA_HOME/bin/shutdown.sh 60 -force"
+    su -s /bin/bash <%= node['tomcat']['user'] %> -c "sh $CATALINA_HOME/bin/startup.sh"
+    is_running
+    [ $tomcat_running -eq 1 ] && rc=0
+  ;; 
+esac    
+
+exit $rc

@@ -1,0 +1,6 @@
+# Get instance specific config file
+if [ -r "/opt/apps/<%= @app_name %>/conf/default_<%= @app_name %>.conf" ]; then
+    . /opt/apps/<%= @app_name %>/conf/default_<%= @app_name %>.conf
+fi
+
+$CATALINA_HOME/bin/catalina.sh stop
